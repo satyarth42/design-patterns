@@ -8,6 +8,7 @@ type IObserver interface {
 type Observer struct {
 	ID int
 	Data int
+	Subject ISubject
 }
 
 func (o *Observer) Update(data int) {
@@ -41,4 +42,50 @@ func (s *Subject) NotifyObservers() {
 	for _,obs := range s.Observers {
 		obs.Update(s.Data)
 	}
+}
+
+
+// ~~~****~~~~
+
+type IPullableSubject interface {
+	ISubject
+	GetData() int
+}
+
+type PullableSubject struct {
+	Data int
+	Observers map[int]IPullableObserver
+}
+
+func (s *PullableSubject) Register(observer IPullableObserver) {
+	s.Observers[observer.GetID()] = observer
+}
+
+func (s *PullableSubject) Unregister(observer IPullableObserver) {
+	delete(s.Observers,observer.GetID())
+}
+
+func (s *PullableSubject) NotifyObservers() {
+	for _,obs := range s.Observers {
+		obs.Update()
+	}
+}
+
+type IPullableObserver interface {
+	Update()
+	GetID() int
+}
+
+type PullableObserver struct {
+	Data int
+	ID int
+	Subject IPullableSubject
+}
+
+func (o *PullableObserver) Update() {
+	o.Data = o.Subject.GetData()
+}
+
+func (o *PullableObserver) GetID() int {
+	return o.Data
 }
